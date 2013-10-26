@@ -11,3 +11,7 @@
 *.lai
 *.la
 *.a
+
+# Compiled Executive files
+CameraCalibrator
+PTAM
