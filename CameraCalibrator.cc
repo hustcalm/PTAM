@@ -89,7 +89,7 @@ void CameraCalibrator::Run()
       mGLWindow.SetupVideoRasterPosAndZoom();
       
       if(mvCalibImgs.size() < 1)
-	*mgvnOptimizing = 0;
+	      *mgvnOptimizing = 0;
       
       if(!*mgvnOptimizing)
 	{

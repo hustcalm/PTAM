@@ -29,7 +29,9 @@
 struct MapMakerData
 {
   std::set<KeyFrame*> sMeasurementKFs;   // Which keyframes has this map point got measurements in?
+
   std::set<KeyFrame*> sNeverRetryKFs;    // Which keyframes have measurements failed enough so I should never retry?
+
   inline int GoodMeasCount()            
   {  return sMeasurementKFs.size(); }
 };
@@ -83,7 +85,7 @@ protected:
   void BundleAdjustRecent();
 
   // Data association functions:
-  int ReFindInSingleKeyFrame(KeyFrame &k);
+  int  ReFindInSingleKeyFrame(KeyFrame &k);
   void ReFindFromFailureQueue();
   void ReFindNewlyMade();
   void ReFindAll();

@@ -81,7 +81,7 @@ void MapMaker::run()
 	}
       
       if(!mMap.IsGood())  // Nothing to do if there is no map yet!
-	continue;
+	      continue;
       
       // From here on, mapmaker does various map-maintenance jobs in a certain priority
       // Hierarchy. For example, if there's a new key-frame to be added (QueueSize() is >0)
@@ -90,22 +90,22 @@ void MapMaker::run()
       CHECK_RESET;
       // Should we run local bundle adjustment?
       if(!mbBundleConverged_Recent && QueueSize() == 0)  
-	BundleAdjustRecent();   
+	      BundleAdjustRecent();   
       
       CHECK_RESET;
       // Are there any newly-made map points which need more measurements from older key-frames?
       if(mbBundleConverged_Recent && QueueSize() == 0)
-	ReFindNewlyMade();  
+	      ReFindNewlyMade();  
       
       CHECK_RESET;
       // Run global bundle adjustment?
       if(mbBundleConverged_Recent && !mbBundleConverged_Full && QueueSize() == 0)
-	BundleAdjustAll();
+	      BundleAdjustAll();
       
       CHECK_RESET;
       // Very low priorty: re-find measurements marked as outliers
       if(mbBundleConverged_Recent && mbBundleConverged_Full && rand()%20 == 0 && QueueSize() == 0)
-	ReFindFromFailureQueue();
+	      ReFindFromFailureQueue();
       
       CHECK_RESET;
       HandleBadPoints();
@@ -113,7 +113,7 @@ void MapMaker::run()
       CHECK_RESET;
       // Any new key-frames to be added?
       if(QueueSize() > 0)
-	AddKeyFrameFromTopOfQueue(); // Integrate into map data struct, and process
+	      AddKeyFrameFromTopOfQueue(); // Integrate into map data struct, and process
     }
 }
 

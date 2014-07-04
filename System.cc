@@ -14,22 +14,35 @@ using namespace std;
 using namespace GVars3;
 
 
+/**
+ * The default System contructor.
+ */
 System::System()
   : mGLWindow(mVideoSource.Size(), "PTAM")
 {
+  // Register callback functions to GUI
   GUI.RegisterCommand("exit", GUICommandCallBack, this);
   GUI.RegisterCommand("quit", GUICommandCallBack, this);
   
+  // Resize the BW and RGB frames according to the video source size
   mimFrameBW.resize(mVideoSource.Size());
   mimFrameRGB.resize(mVideoSource.Size());
+
   // First, check if the camera is calibrated.
   // If not, we need to run the calibration widget.
   Vector<NUMTRACKERCAMPARAMETERS> vTest;
   
+  // Get camera parameters through GV3
   vTest = GV3::get<Vector<NUMTRACKERCAMPARAMETERS> >("Camera.Parameters", ATANCamera::mvDefaultParams, HIDDEN);
+
+  // Construct a live camera
   mpCamera = new ATANCamera("Camera");
+
+  // I believe the below 2 lines are for test of '==' of vector
   Vector<2> v2;
-  if(v2==v2) ;
+  if(v2 == v2) ;
+
+  // Camera is not calibrated yet, give hints and exit the program
   if(vTest == ATANCamera::mvDefaultParams)
     {
       cout << endl;
@@ -38,12 +51,17 @@ System::System()
       exit(1);
     }
   
+  // Let's dance! But first contruct the whole world!
+  // Note once construted, they are living objects in the system
+  // The MapMaker object will live in its own thread
   mpMap = new Map;
   mpMapMaker = new MapMaker(*mpMap, *mpCamera);
   mpTracker = new Tracker(mVideoSource.Size(), *mpCamera, *mpMap, *mpMapMaker);
   mpARDriver = new ARDriver(*mpCamera, mVideoSource.Size(), mGLWindow);
   mpMapViewer = new MapViewer(*mpMap, mGLWindow);
   
+  // Draw the menus out on the GUI using ParseLine
+  // Note that the 'GUI' object is made live in 'gvars3/inst.cc'
   GUI.ParseLine("GLWindow.AddMenu Menu Menu");
   GUI.ParseLine("Menu.ShowMenu Root");
   GUI.ParseLine("Menu.AddMenuButton Root Reset Reset Root");
@@ -69,37 +87,47 @@ void System::Run()
       mVideoSource.GetAndFillFrameBWandRGB(mimFrameBW, mimFrameRGB);  
       static bool bFirstFrame = true;
       if(bFirstFrame)
-	{
-	  mpARDriver->Init();
-	  bFirstFrame = false;
-	}
+	  {
+          // First frame arrived, initialize the ARDriver
+          mpARDriver->Init();
+          bFirstFrame = false;
+	  }
       
+      // As we invoke the blow 3 lines for every frame
+      // this should be related to each camera frame for display
       mGLWindow.SetupViewport();
       mGLWindow.SetupVideoOrtho();
       mGLWindow.SetupVideoRasterPosAndZoom();
       
+      // If the map is not good, then reset the ARDriver
       if(!mpMap->IsGood())
-	mpARDriver->Reset();
+	      mpARDriver->Reset();
       
       static gvar3<int> gvnDrawMap("DrawMap", 0, HIDDEN|SILENT);
       static gvar3<int> gvnDrawAR("DrawAR", 0, HIDDEN|SILENT);
       
+      // Whether we will draw the map or draw the AR
       bool bDrawMap = mpMap->IsGood() && *gvnDrawMap;
       bool bDrawAR = mpMap->IsGood() && *gvnDrawAR;
       
+      // Track the frame
       mpTracker->TrackFrame(mimFrameBW, !bDrawAR && !bDrawMap);
       
+      // Draw map or AR on the window
       if(bDrawMap)
-	mpMapViewer->DrawMap(mpTracker->GetCurrentPose());
+	      mpMapViewer->DrawMap(mpTracker->GetCurrentPose());
       else if(bDrawAR)
-	mpARDriver->Render(mimFrameRGB, mpTracker->GetCurrentPose());
+	      mpARDriver->Render(mimFrameRGB, mpTracker->GetCurrentPose());
 
-      //      mGLWindow.GetMousePoseUpdate();
+      // mGLWindow.GetMousePoseUpdate();
+      
+      // Draw caption
       string sCaption;
       if(bDrawMap)
-	sCaption = mpMapViewer->GetMessageForUser();
+	      sCaption = mpMapViewer->GetMessageForUser();
       else
-	sCaption = mpTracker->GetMessageForUser();
+          sCaption = mpTracker->GetMessageForUser();
+
       mGLWindow.DrawCaption(sCaption);
       mGLWindow.DrawMenus();
       mGLWindow.swap_buffers();
@@ -112,11 +140,4 @@ void System::GUICommandCallBack(void *ptr, string sCommand, string sParams)
   if(sCommand=="quit" || sCommand == "exit")
     static_cast<System*>(ptr)->mbDone = true;
 }
-
-
-
-
-
-
-
 

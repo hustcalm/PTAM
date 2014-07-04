@@ -17,15 +17,22 @@ int main()
   cout << "  Copyright (C) Isis Innovation Limited 2008 " << endl;  
   cout << endl;
   cout << "  Parsing settings.cfg ...." << endl;
+
+  // Note that GUI is a global object living in GVars3
+  // and comes to life once PTAM starts
+  // doing parser job in a dedicated thread
   GUI.LoadFile("settings.cfg");
-  
-  GUI.StartParserThread(); // Start parsing of the console input
+ 
+  // Start parsing of the console input
+  GUI.StartParserThread(); 
+
+  // Call StopParserThread when PTAM terminates normally
   atexit(GUI.StopParserThread); 
   
   try
     {
-      System s;
-      s.Run();
+      System s; // Construct the system using the default constructor
+      s.Run();  // Everything happens here
     }
   catch(CVD::Exceptions::All e)
     {
@@ -35,13 +42,4 @@ int main()
       cout << e.what << endl;
     }
 }
-
-
-
-
-
-
-
-
-
 
